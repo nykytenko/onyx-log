@@ -1,0 +1,38 @@
+{
+	"name": "onyx-log",
+	"description": "Log library for D",
+	"license": "MIT",
+	"copyright": "Copyright © 2014, onyx",
+	"authors": ["Oleg Nykytenko (onyx)"],
+
+	"targetPath":"./bin",
+
+	"configurations": [
+		{
+			"name": "library",
+			"targetType": "library",
+			"sourcePaths": ["source/"],
+			"excludedSourceFiles": ["test"]
+		},
+		{
+			"name":"test",
+			"targetType": "executable",
+			"sourcePaths": ["test/", "source/"],
+			"mainSourceFile": "test/onyx/main.d",
+			"versions": ["vTest"]
+		},
+		{
+			"name":"testFile",
+			"targetType": "executable",
+			"sourcePaths": ["test/", "source/"],
+			"mainSourceFile": "test/onyx/main.d",
+			"versions": ["vTest", "vTestFile"]
+		}
+		
+	],
+	
+	"dependencies": {
+		"onyx-config": ">=1.1.4"
+	}
+
+}

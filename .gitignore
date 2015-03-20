@@ -1,0 +1,6 @@
+*~
+.dub
+bin/
+.settings/
+.buildpath
+.project
