@@ -11,7 +11,7 @@ onyx-log: the simple, fast, multithreading logging library for D.
 
 ## Examples:
 
-Configuration text file ("./conf/test.conf"):
+Configuration text file ("./test/test.conf"):
 
 	# Logger's name. Any string value
 	[DebugLogger] 				
