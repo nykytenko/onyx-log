@@ -32,7 +32,7 @@
 	],
 	
 	"dependencies": {
-		"onyx-config": "~>1.2.0"
+		"onyx-config": "~>1.2.1"
 	}
 
 }

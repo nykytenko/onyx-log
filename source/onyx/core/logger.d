@@ -15,18 +15,13 @@
  */
 module onyx.core.logger;
 
-import onyx.config.bundle;
+
 import onyx.log;
+import onyx.config.bundle;
 
-import std.concurrency;
-import std.datetime;
-import std.file;
-import std.stdio;
-import std.string;
 
-import core.sync.mutex;
-import core.thread;
-
+@safe:
+public:
 
 /**
  * Create loggers
@@ -36,16 +31,15 @@ import core.thread;
 @trusted
 void create(immutable ConfBundle bundle)
 {
-	auto names = bundle.glKeys();
 	synchronized (lock) 
 	{
-		foreach(loggerName; names)
+		foreach(loggerName; bundle.glKeys())
 		{
 			if (loggerName in ids)
 			{
 				throw new LogCreateException("Creating logger error. Logger with name: " ~ loggerName ~ " already created");
 			}
-			auto log = new Logger(bundle.subBundle(loggerName), loggerName);
+			auto log = new Logger(bundle.subBundle(loggerName));
 			ids[loggerName] = log;
 		}
 	}
@@ -102,17 +96,42 @@ void setErrorFile(immutable string file)
 {
 	synchronized (lock) 
 	{
-		auto errorFile = File(file, "a");
+		errorFile = File(file, "a");
 	}
 }
 
 
+/*
+ * Make class member with getter
+ */
+template addVal(T, string name, string specificator)
+{
+	const char[] member = "private " ~ T.stringof ~ " _" ~ name ~"; ";
+	const char[] getter = "@property nothrow pure " ~ specificator ~ " " ~ T.stringof ~ " " ~ name ~ "() { return _" ~ name ~ "; }";
+	const char[] addVal = member ~ getter;
+}
 
+/**
+ * Make class member with getter and setter
+ *
+ */
+template addVar(T, string name, string getterSpecificator, string setterSpecificator)
+{
+	const char[] setter = "@property nothrow pure " ~ setterSpecificator ~ " void " ~ name ~ "(" ~ T.stringof ~ " var" ~ ") { _" ~ name ~ " = var; }";
+	const char[] addVar = addVal!(T, name, getterSpecificator) ~ setter;
+}
 
-
+/*
+ **************************************************************************************
+ */
+@system:
 private:
 
+import core.sync.mutex;
 
+import std.stdio;
+
+import onyx.core.appender;
 /*
  * Mutex use for block work with loggers pool
  */
@@ -136,18 +155,6 @@ shared static this()
 {
 	lock = new Mutex();
 }
-
-
-/*
- * Make class member with getter
- */
-template addVal(T, string name, string specificator)
-{
-	const char[] member = "private " ~ T.stringof ~ " _" ~ name ~"; ";
-	const char[] getter = "@property nothrow pure " ~ specificator ~ " " ~ T.stringof ~ " " ~ name ~ "() { return _" ~ name ~ "; }";
-	const char[] addVal = member ~ getter;
-}
-
 
 
 /*
@@ -199,18 +206,14 @@ class Logger: Log
 	 *
 	 * Throws: LogCreateException, ConfException
 	 */
-	this(immutable ConfBundle bundle, immutable GlKey loggerName)
+	this(immutable ConfBundle bundle)
 	{
-		if (!bundle.isGlKeyPresent(loggerName))
-		{
-			throw new LogCreateException("Creating logger error. Not found in config bundle logger with name: " ~ loggerName);
-		}
 		_config = bundle;
-		_name = loggerName;
-		mlevel = bundle.value(loggerName, "level").toLevel;
+		_name = bundle.glKeys[0];
+		mlevel = bundle.value(name, "level").toLevel;
 		
-		appender = createAppender(bundle, loggerName);
-		encoder = new Encoder(bundle, this);
+		appender = createAppender(bundle);
+		encoder = new Encoder(bundle);
 	}
 	
 	
@@ -220,28 +223,28 @@ class Logger: Log
 	 * Throws: ConfException, LogCreateException
 	 */
 	@trusted /* Object.factory is system */
-	Appender createAppender(immutable ConfBundle bundle, immutable GlKey loggerName)
+	Appender createAppender(immutable ConfBundle bundle)
 	{
 		try
 		{
-			string appenderType = bundle.value(loggerName, "appender");
-			AppenderFactory f = cast(AppenderFactory)Object.factory("onyx.core.logger." ~ appenderType ~ "Factory");
+			string appenderType = bundle.value(name, "appender");
+			AppenderFactory f = cast(AppenderFactory)Object.factory("onyx.core.appender." ~ appenderType ~ "Factory");
 			
 			if (f is null)
 			{
 				throw new  LogCreateException("Error create log appender: " ~ appenderType  ~ "  is Illegal appender type from config bundle.");
 			}
 			
-			Appender a = f.factory(bundle, this);
+			Appender a = f.factory(bundle);
 			return a;
 		}
 		catch (ConfException e)
 		{
-			throw new ConfException("Error in Config bundle. [" ~ loggerName ~ "]:" ~ e.msg);
+			throw new ConfException("Error in Config bundle. [" ~ name ~ "]:" ~ e.msg);
 		}
 		catch (Exception e)
 		{
-			throw new LogCreateException("Error in creating appender for logger: " ~ loggerName ~ ": " ~ e.msg);
+			throw new LogCreateException("Error in creating appender for logger: " ~ name ~ ": " ~ e.msg);
 		}
 	}
 	
@@ -350,354 +353,26 @@ class Logger: Log
 			}	
 		}
 		catch(Exception e){}
-	}
-} 
-
-
-/*
- * Appender Create interface
- *
- * Use by Logger for create new Appender
- *
- * ====================================================================================
- */ 
-interface AppenderFactory
-{
-	Appender factory(immutable ConfBundle bundle, Logger logger);
+	}	
 }
-
-
-
-/**
- * Accept messages and publicate it in target
- */ 
-abstract class Appender
-{
-	/**
- 	 * Save Logger
-   	 */ 
-	Logger logger;
-	
-	
-	/**
- 	 * Create Appender
-   	 */ 
-	this(Logger logger) nothrow pure
-	{
-		this.logger = logger;
-	}
-	
-	
-	/**
- 	 * Append new message
-   	 */ 
-	void append(immutable string message);
-}
-
-
-/**
- * Factory for NullAppender
- *
- * ====================================================================================
- */ 
-class NullAppenderFactory:AppenderFactory
-{
-	override Appender factory(immutable ConfBundle bundle, Logger logger)
-	{
-		return new NullAppender(logger);
-	}
-}
-
-/**
- * Only Accept messages
- */ 
-class NullAppender:Appender
-{
-	/**
-	 * Create Appender
-	 */ 
-	this(Logger logger)
-	{
-		super(logger);
-	}
-	
-
-	/**
- 	 * Append new message and do nothing
-   	 */
-	override void append(immutable string message) nothrow pure {}
-}
-
-
-/**
- * Factory for ConsoleAppender
- *
- * ====================================================================================
- */
-class ConsoleAppenderFactory:AppenderFactory
-{
-	override Appender factory(immutable ConfBundle bundle, Logger logger)
-	{
-		return new ConsoleAppender(logger);
-	}
-}
-
-
-/**
- * Accept messages and publicate it on console
- */
-class ConsoleAppender:Appender
-{
-	/**
-	 * Create Appender
-	 */ 
-	this(Logger logger)
-	{
-		super(logger);
-	}
-	
-
-	/**
- 	 * Append new message and print it to console
-   	 */
-	@trusted /* writefln is system */
-	override void append(immutable string message)
-	{
-		writeln(message);
-	}
-}
-
-
-/**
- * Factory for FileAppender
- *
- * ====================================================================================
- */
-class FileAppenderFactory:AppenderFactory
-{
-	override Appender factory(immutable ConfBundle bundle, Logger logger)
-	{
-		return new FileAppender(bundle, logger);
-	}
-}
-
-
-/**
- * Accept messages and publicate it in file
- */
-class FileAppender:Appender
-{
-	/**
-	 * Tid for appender activity
-	 */
-	Tid activity;
-	
-	
-	/**
-	 * Create Appender
-	 */
-	@trusted
-	this(immutable ConfBundle bundle, Logger logger)
-	{
-		super(logger);
-		auto filePath = bundle.value(logger.name, "fileNameBase");
-		activity = spawn(&fileAppenderActivityStart, filePath);
-	}
-	
-
-	/**
- 	 * Append new message and send it to file
-   	 */
-	@trusted
-	override void append(immutable string message)
-	{
-		activity.send(message);
-	}
-}
-
-
-/**
- * Start new thread for file log activity
- */
-@system
-void fileAppenderActivityStart(string filePath)
-{
-	new FileAppenderActivity(filePath).run();
-}
-
-
-
-/**
- * Logger FileAppender activity
- *
- * Write log message to file from one thread
- */
-class FileAppenderActivity
-{
-	/**
-	 * Max flush period to write to file
-	 */
-	enum logFileWriteFlushPeriod = 100; // ms
-
-
-	/**
-     * Activity working status
-     */
-    enum AppenderWorkStatus {WORKING, STOPPING}
-    auto workStatus = AppenderWorkStatus.WORKING;
-
-
-    /**
-     * Path to logger file
-     */
-    mixin(addVal!(immutable string, "filePath", "private"));
-
-
-	/**
-	 * Logging file
-	 */
-	File file;
-
-
-	/**
-	 * Primary constructor
-	 *
-	 * Save path to log file
-	 */
-    this(string filePath) nothrow pure
-    {
-    	_filePath = filePath;
-    }
-    
-
-    /**
-     * Check Parent directory creation requrired
-     */
-    private bool isParentDirectoryCreationRequired(string filePath)
-    {
-    	string dir = getParentDir(filePath);
-    	
-    	if ((dir.length != 0) && (!exists(dir))) 
-    	{
-    		return true;
-    	}
-    	else return false;
-    }
-    
-
-    /**
-     * Create full path to log file
-     */
-    @system
-    private void createMissingParentDirectories(string filePath)
-    {
-    	mkdirRecurse(getParentDir(filePath)); 
-    }
-    
-    
-    /**
-     * get parent directory from full file path
-     */
-    private string getParentDir(string filePath)
-    {
-    	version(Windows) 
-    		string dir = filePath[0..filePath.lastIndexOf("\\")];
-    	else 
-    		string dir = filePath[0..filePath.lastIndexOf("/")];
-    	return dir;
-    }
-    
-    
-    /**
-     * open log file to work
-     */
-    @system
-    private void openFile(string filePath)
-    {
-    	if (isParentDirectoryCreationRequired(filePath))
-    		createMissingParentDirectories(filePath);
-    	file = File(filePath.strip, "a");
-    }
-
-
-	/**
-	 * Entry point for start module work
-	 */
-	@system
-	void run()
-	{
-		openFile(filePath);
-		
-		auto fileTid = thisTid;
-		
-		/**
-		 * Timer cycle for flush log file
-		 */
-		void flushTimerCycle()
-		{
-			while (workStatus == AppenderWorkStatus.WORKING)
-			{
-				Thread.sleep( dur!("msecs")( logFileWriteFlushPeriod ) );
-				send(fileTid, "log_file_flush");
-			}
-		}
-		new Thread(&flushTimerCycle).start;
-		
-		while (workStatus == AppenderWorkStatus.WORKING)
-		{
-			workCycle();
-		}
-	}
-
-
-	/**
-	 * Activity main cycle
-	 */
-	@trusted
-	private void workCycle()
-	{
-		receive(
-			(string msg)
-			{
-				if (msg == "log_file_flush") 
-					file.flush;
-				else	
-					saveToFile(msg);
-			},
-			(OwnerTerminated e){workStatus = AppenderWorkStatus.STOPPING;},
-			(Variant any){}
-		);
-	}
-	
-	
-	/**
-	 * Save message to log file
-	 */
-	@trusted
-	void saveToFile(string msg)
-	{
-		if (!file.isOpen()) file.open(filePath, "a");
-		file.writeln(msg);
-	}
-
-}
-
 
 
 class Encoder
 {
+	import std.datetime;
+	
 	/*
- 	 * Logger
+ 	 * Name
    	 */ 
-	Logger logger;
+	mixin(addVal!(immutable string, "name", "private"));
 	
 	
 	/*
  	 * Build encoder
    	 */ 
-	this(immutable ConfBundle bundle, Logger logger) pure nothrow
+	this(immutable ConfBundle bundle) pure nothrow
 	{
-		this.logger = logger;
+		_name = bundle.glKeys[0];
 	}
 	
 	
@@ -708,9 +383,10 @@ class Encoder
    	 */ 
 	immutable (string) encode (immutable string message, immutable Level level)
 	{
-		return std.string.format("%-27s [%s] %s- %s", Clock.currTime.toISOExtString(), levelToString(level), logger.name, message);
+		return std.string.format("%-27s [%s] %s- %s", Clock.currTime.toISOExtString(), levelToString(level), name, message);
 	}
 }
+
 
 
 /*
@@ -790,3 +466,5 @@ string levelToString(Level level)
 	}
 	return l;
 }
+
+
