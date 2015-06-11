@@ -23,6 +23,18 @@ Configuration text file ("./test/test.conf"):
 	# Appender is logger's message writer
 	# Values: NullAppender, ConsoleAppender, FileAppender
 	appender = FileAppender
+	
+	# Rolling type
+	# Values: SizeBasedRollover
+	rolling = SizeBasedRollover
+	
+	# Log file max size
+	# Values: number, number with suffix: K, M, G, T, P
+	maxSize = 2K
+	
+	# Max number of log files
+	# Values: number
+	maxHistory = 4
 
 	# For FileAppender need path to log file and base of file name
 	fileNameBase = ./log/MainDebug.log
@@ -56,5 +68,5 @@ Source code example:
 		auto logDebug = getLogger("DebugLogger");
 		logDebug.debug_("debug msg");
 		logDebug.info("info msg");
-		logDebug.error("error msg");
+		logDebug.error("error!!!!!! msg");
 	}
