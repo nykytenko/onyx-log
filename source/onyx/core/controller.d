@@ -309,8 +309,8 @@ class SizeBasedRollover:Rollover
 			auto m = matchAll(size, regex(`\D{1}`));
 			if (!m.empty && (m.hit.length != 0))
 			{
-				import std.stdio;
-				writeln("m.hit.toUpper = " ~ m.hit.toUpper);
+				//import std.stdio;
+			//	writeln("m.hit.toUpper = " ~ m.hit.toUpper);
 				switch(m.hit.toUpper)
 				{
 					case "K":
