@@ -96,6 +96,7 @@ void setErrorFile(immutable string file)
 {
 	synchronized (lock) 
 	{
+		onyx.core.controller.createPath(file);
 		errorFile = File(file, "a");
 	}
 }

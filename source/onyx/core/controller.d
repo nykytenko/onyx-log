@@ -59,6 +59,7 @@ struct Controller
     	
     	_name = bundle.glKeys[0];
     	
+		createPath(rollover.activeFilePath());
     	activeFile = File(rollover.activeFilePath(), "a");
     }
     
@@ -126,8 +127,32 @@ struct Controller
     {
     	activeFile.flush;
     }
-	
+
+
+		
 }
+
+
+
+/**
+ * Create file
+ */
+void createPath(string fileFullName)
+{
+	import std.path:dirName;
+	import std.file:mkdirRecurse;
+	import std.file:exists;
+	
+	string dir = dirName(fileFullName);
+
+	if ((dir.length != 0) && (!exists(dir)))
+	{
+		mkdirRecurse(dir);
+	}
+}
+
+
+
 
 
 /**
