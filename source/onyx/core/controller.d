@@ -22,7 +22,7 @@ package:
 
 import onyx.log;
 import onyx.core.logger;
-import onyx.config.bundle;
+import onyx.bundle;
 
 
 struct Controller
@@ -52,7 +52,7 @@ struct Controller
 	 *
 	 * Save config path and name
 	 */
-    this(immutable ConfBundle bundle)
+    this(immutable Bundle bundle)
     {
     	
     	rollover = createRollover(bundle);
@@ -67,10 +67,10 @@ struct Controller
     /**
 	 * Extract logger type from bundle
 	 *
-	 * Throws: ConfException, LogCreateException
+	 * Throws: BundleException, LogCreateException
 	 */
 	@trusted /* Object.factory is system */
-	Rollover createRollover(immutable ConfBundle bundle)
+	Rollover createRollover(immutable Bundle bundle)
 	{
 		try
 		{
@@ -89,9 +89,9 @@ struct Controller
 			Rollover r = f.factory(bundle);
 			return r;
 		}
-		catch (ConfException e)
+		catch (BundleException e)
 		{
-			throw new ConfException("Error in Config bundle. [" ~ name ~ "]:" ~ e.msg);
+			throw new BundleException("Error in Config bundle. [" ~ name ~ "]:" ~ e.msg);
 		}
 		catch (Exception e)
 		{
@@ -164,7 +164,7 @@ void createPath(string fileFullName)
  */ 
 interface RolloverFactory
 {
-	Rollover factory(immutable ConfBundle bundle);
+	Rollover factory(immutable Bundle bundle);
 }
 
 
@@ -181,7 +181,7 @@ class Rollover
 	/**
 	 * Control of size and number of log files
 	 */
-	immutable ConfBundle bundle;
+	immutable Bundle bundle;
 	
 
 	/**
@@ -217,7 +217,7 @@ class Rollover
 	/**
 	 * Primary constructor
 	 */
-	this(immutable ConfBundle bundle)
+	this(immutable Bundle bundle)
 	{
 		this.bundle = bundle;
 		_path = bundle.value(bundle.glKeys[0], "fileName");
@@ -275,7 +275,7 @@ class Rollover
  */
 class SizeBasedRolloverFactory:RolloverFactory
 {
-	override Rollover factory(immutable ConfBundle bundle)
+	override Rollover factory(immutable Bundle bundle)
 	{
 		return new SizeBasedRollover(bundle);
 	}
@@ -308,11 +308,11 @@ class SizeBasedRollover:Rollover
 	/**
 	 * Primary constructor
 	 */
-	this(immutable ConfBundle bundle)
+	this(immutable Bundle bundle)
 	{
 		super(bundle);
 		maxSize = extractSize(bundle.value(bundle.glKeys[0], "maxSize"));
-		maxHistory = bundle.intValue(bundle.glKeys[0], "maxHistory");
+		maxHistory = bundle.value!int(bundle.glKeys[0], "maxHistory");
 	}
 	
 	

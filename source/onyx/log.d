@@ -16,7 +16,7 @@
 module onyx.log;
 
 
-import onyx.config.bundle;
+import onyx.bundle;
 import onyx.core.logger;
 
 
@@ -26,9 +26,9 @@ import onyx.core.logger;
 /**
  * Create loggers
  *
- * Throws: ConfException, LogCreateException
+ * Throws: BundleException, LogCreateException
  */
-void createLoggers(immutable ConfBundle bundle)
+void createLoggers(immutable Bundle bundle)
 {
 	create(bundle);
 }
@@ -94,7 +94,7 @@ interface Log
 	/**
 	 * Configurations data
 	 */
-	immutable (ConfBundle) config();
+	immutable (Bundle) config();
 
 
 	/**
@@ -144,7 +144,7 @@ class LogCreateException:LogException
 @trusted:
 unittest
 {
-	auto bundle = immutable ConfBundle("./test/test.conf");
+	auto bundle = new immutable Bundle("./test/test.conf");
 	createLoggers(bundle);
 	setErrorFile("./log/error.log");
 

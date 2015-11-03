@@ -17,7 +17,7 @@ module onyx.core.logger;
 
 
 import onyx.log;
-import onyx.config.bundle;
+import onyx.bundle;
 
 
 @safe:
@@ -29,7 +29,7 @@ public:
  * Throws: ConfException, LogCreateException, Exception
  */
 @trusted
-void create(immutable ConfBundle bundle)
+void create(immutable Bundle bundle)
 {
 	synchronized (lock) 
 	{
@@ -166,7 +166,7 @@ class Logger: Log
 	/*
  	 * Configuration data
    	 */ 
-	mixin(addVal!(immutable ConfBundle, "config", "public"));
+	mixin(addVal!(immutable Bundle, "config", "public"));
 
 
 	/*
@@ -207,7 +207,7 @@ class Logger: Log
 	 *
 	 * Throws: LogCreateException, ConfException
 	 */
-	this(immutable ConfBundle bundle)
+	this(immutable Bundle bundle)
 	{
 		_config = bundle;
 		_name = bundle.glKeys[0];
@@ -221,10 +221,10 @@ class Logger: Log
 	/*
 	 * Extract logger type from bundle
 	 *
-	 * Throws: ConfException, LogCreateException
+	 * Throws: BundleException, LogCreateException
 	 */
 	@trusted /* Object.factory is system */
-	Appender createAppender(immutable ConfBundle bundle)
+	Appender createAppender(immutable Bundle bundle)
 	{
 		try
 		{
@@ -239,9 +239,9 @@ class Logger: Log
 			Appender a = f.factory(bundle);
 			return a;
 		}
-		catch (ConfException e)
+		catch (BundleException e)
 		{
-			throw new ConfException("Error in Config bundle. [" ~ name ~ "]:" ~ e.msg);
+			throw new BundleException("Error in Config bundle. [" ~ name ~ "]:" ~ e.msg);
 		}
 		catch (Exception e)
 		{
@@ -371,7 +371,7 @@ class Encoder
 	/*
  	 * Build encoder
    	 */ 
-	this(immutable ConfBundle bundle) pure nothrow
+	this(immutable Bundle bundle) pure nothrow
 	{
 		_name = bundle.glKeys[0];
 	}

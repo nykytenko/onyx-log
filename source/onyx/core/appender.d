@@ -21,7 +21,7 @@ module onyx.core.appender;
 package:
 
 
-import onyx.config.bundle;
+import onyx.bundle;
 
 /*
  * Appender Create interface
@@ -32,7 +32,7 @@ import onyx.config.bundle;
  */ 
 interface AppenderFactory
 {
-	Appender factory(immutable ConfBundle bundle);
+	Appender factory(immutable Bundle bundle);
 }
 
 
@@ -56,7 +56,7 @@ abstract class Appender
  */ 
 class NullAppenderFactory:AppenderFactory
 {
-	override Appender factory(immutable ConfBundle bundle)
+	override Appender factory(immutable Bundle bundle)
 	{
 		return new NullAppender();
 	}
@@ -81,7 +81,7 @@ class NullAppender:Appender
  */
 class ConsoleAppenderFactory:AppenderFactory
 {
-	override Appender factory(immutable ConfBundle bundle)
+	override Appender factory(immutable Bundle bundle)
 	{
 		return new ConsoleAppender();
 	}
@@ -111,7 +111,7 @@ class ConsoleAppender:Appender
  */
 class FileAppenderFactory:AppenderFactory
 {
-	override Appender factory(immutable ConfBundle bundle)
+	override Appender factory(immutable Bundle bundle)
 	{
 		return new FileAppender(bundle);
 	}
@@ -135,7 +135,7 @@ class FileAppender:Appender
 	 * Create Appender
 	 */
 	@trusted
-	this(immutable ConfBundle bundle)
+	this(immutable Bundle bundle)
 	{
 		activity = spawn(&fileAppenderActivityStart, bundle);
 	}
@@ -156,7 +156,7 @@ class FileAppender:Appender
  * Start new thread for file log activity
  */
 @system
-void fileAppenderActivityStart(immutable ConfBundle bundle)
+void fileAppenderActivityStart(immutable Bundle bundle)
 {
 	new FileAppenderActivity(bundle).run();
 }
@@ -200,7 +200,7 @@ class FileAppenderActivity
 	 *
 	 * Save config path and name
 	 */
-    this(immutable ConfBundle bundle)
+    this(immutable Bundle bundle)
     {
     	try
     	{
