@@ -30,4 +30,4 @@ configuration "testFile" {
 }
 
 
-dependency "onyx-config" version=">=2.0.3"
+dependency "onyx-config" version=">=2.0.4"

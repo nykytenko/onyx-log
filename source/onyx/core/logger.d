@@ -96,6 +96,7 @@ void setErrorFile(immutable string file)
 {
 	synchronized (lock) 
 	{
+		static import onyx.core.controller;
 		onyx.core.controller.createPath(file);
 		errorFile = File(file, "a");
 	}
@@ -384,7 +385,8 @@ class Encoder
    	 */ 
 	immutable (string) encode (immutable string message, immutable Level level)
 	{
-		return std.string.format("%-27s [%s] %s- %s", Clock.currTime.toISOExtString(), levelToString(level), name, message);
+		import std.string;
+		return format("%-27s [%s] %s- %s", Clock.currTime.toISOExtString(), levelToString(level), name, message);
 	}
 }
 

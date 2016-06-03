@@ -99,7 +99,8 @@ class ConsoleAppender:Appender
 	@trusted /* writefln is system */
 	override void append(immutable string message)
 	{
-		std.stdio.writeln(message);
+		import std.stdio;
+		writeln(message);
 	}
 }
 

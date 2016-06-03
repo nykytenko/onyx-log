@@ -324,6 +324,7 @@ class SizeBasedRollover:Rollover
 	uint extractSize(string size)
 	{
 		import std.uni : toLower;
+		import std.uni : toUpper;
 		import std.conv;
 		
 		uint nsize = 0;
@@ -375,6 +376,7 @@ class SizeBasedRollover:Rollover
     	import std.algorithm.sorting:sort;
     	bool tc(string s)
 		{
+			static import std.path;
 			auto base = std.path.baseName(s);
 			auto m = matchAll(base, regex(baseName ~ `\d*\.` ~ ext));
 			if (m.empty || (m.hit != base))
@@ -442,6 +444,8 @@ class SizeBasedRollover:Rollover
 		uint num = 0;
 		try
 		{
+			static import std.path;
+			import std.string;
 			auto fch = std.path.baseName(file).chompPrefix(baseName);
 			auto m = matchAll(fch, regex(`\d*`));
 			
