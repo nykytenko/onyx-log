@@ -28,6 +28,7 @@ import onyx.bundle;
 struct Controller
 {
 	import std.stdio;
+	import std.file;
 
 	/**
 	 * Currently Logging file
@@ -107,7 +108,7 @@ struct Controller
 	 */
 	void saveMsg(string msg)
     {
-    	if (rollover.roll(msg))
+    	if ((!activeFile.name.exists) || rollover.roll(msg))
     	{
     		activeFile = File(rollover.activeFilePath(), "w");
     	}
@@ -116,7 +117,7 @@ struct Controller
     		activeFile.open("a");
     	}
 		activeFile.writeln(msg);
-		flush();
+		//flush();
     }
     
     
@@ -403,6 +404,10 @@ class SizeBasedRollover:Rollover
 	bool roll(string msg)
 	{
 		auto filePool = scanDir();
+		if (filePool.length == 0)
+		{
+			return false;
+		}
 		if ((getSize(filePool[0]) + msg.length) >= maxSize)
 		{
 			//if ((filePool.front.getSize == 0) throw

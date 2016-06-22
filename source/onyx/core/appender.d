@@ -172,9 +172,8 @@ void fileAppenderActivityStart(immutable Bundle bundle)
 class FileAppenderActivity
 {
 	import  onyx.core.controller;
-	
 	import std.concurrency;
-	import core.thread;
+	import std.datetime;
 	
 	
 	/**
@@ -187,7 +186,10 @@ class FileAppenderActivity
      * Activity working status
      */
     enum AppenderWorkStatus {WORKING, STOPPING}
-    auto workStatus = AppenderWorkStatus.WORKING;
+    private auto workStatus = AppenderWorkStatus.WORKING;
+
+
+    long startFlushTime;
     
     
     /**
@@ -212,7 +214,12 @@ class FileAppenderActivity
 			import std.stdio;
 			writeln("FileAppenderActivity exception: " ~ e.msg);
 		}	
+
+		startFlushTime = Clock.currStdTime();
     }
+
+    import std.stdio;
+    import std.conv;
     
     
     /**
@@ -221,26 +228,19 @@ class FileAppenderActivity
 	@system
 	void run()
 	{
-		auto fileTid = thisTid;
-		
 		/**
 		 * Timer cycle for flush log file
 		 */
-		void flushTimerCycle()
-		{
-			while (workStatus == AppenderWorkStatus.WORKING)
-			{
-				Thread.sleep( dur!("msecs")( logFileWriteFlushPeriod ) );
-				send(fileTid, "log_file_flush");
-			}
-		}
-		new Thread(&flushTimerCycle).start;
+
 		
 		while (workStatus == AppenderWorkStatus.WORKING)
 		{
 			workCycle();
 		}
 	}
+
+
+
 	
 	
 	/**
@@ -249,17 +249,21 @@ class FileAppenderActivity
 	@trusted
 	private void workCycle()
 	{
-		receive(
+		receiveTimeout(
+			dur!("msecs")(10),
 			(string msg)
 			{
-				if (msg == "log_file_flush") 
-					controller.flush;
-				else	
-					controller.saveMsg(msg);
+				controller.saveMsg(msg);
 			},
 			(OwnerTerminated e){workStatus = AppenderWorkStatus.STOPPING;},
 			(Variant any){}
 		);
+
+		if (logFileWriteFlushPeriod > (Clock.currStdTime() - startFlushTime)/(1000*10))
+		{
+			controller.flush;
+			startFlushTime = Clock.currStdTime();
+		}
 	}
 	
 	
