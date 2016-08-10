@@ -259,7 +259,7 @@ class FileAppenderActivity
 			(Variant any){}
 		);
 
-		if (logFileWriteFlushPeriod > (Clock.currStdTime() - startFlushTime)/(1000*10))
+		if (logFileWriteFlushPeriod <= (Clock.currStdTime() - startFlushTime)/(1000*10))
 		{
 			controller.flush;
 			startFlushTime = Clock.currStdTime();
