@@ -1,7 +1,7 @@
 name "onyx-log"
 description "Log library by D"
 license "MIT"
-copyright "Copyright © 2014-2015"
+copyright "Copyright © 2014-2017"
 authors "Oleg Nykytenko"
 
 targetPath "./bin"
@@ -30,4 +30,4 @@ configuration "testFile" {
 }
 
 
-dependency "onyx-config" version=">=2.0.4"
+dependency "onyx-config" version=">=2.0.8"
