@@ -4,7 +4,7 @@ onyx-log: the simple, fast, multithreading logging library for D.
 
 
 ## Key features:
- - Create loggers in "logger pool" with configuration data packed to ConfBundle (onyx-config lib).
+ - Create loggers in "logger pool" with configuration data packed to Bundle (onyx-config lib).
  - Get logger by his name.
  - Write message to logger.
  - Any work with loggers in multi-threaded environment is safety.
@@ -54,7 +54,7 @@ Source code example:
 	void main()
 	{
 		/* Build ConfBundle from config file */
-		auto bundle = immutable Bundle("./test/test.conf");
+		auto bundle = new immutable Bundle("./test/test.conf");
 
 		/* Add loggers to "logger pool" */
 		createLoggers(bundle);
