@@ -48,6 +48,7 @@ Configuration text file ("./test/test.conf"):
 
 Source code example:
 
+```D
 	import onyx.log;
 	import onyx.bundle;
 
@@ -70,3 +71,4 @@ Source code example:
 		logDebug.info("info msg");
 		logDebug.error("error!!!!!! msg");
 	}
+```
