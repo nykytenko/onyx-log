@@ -37,7 +37,7 @@ Configuration text file ("./test/test.conf"):
 	maxHistory = 4
 
 	# For FileAppender need path to log file and base of file name
-	fileNameBase = ./log/MainDebug.log
+	fileName = ./log/MainDebug.log
 
 
 
@@ -49,12 +49,12 @@ Configuration text file ("./test/test.conf"):
 Source code example:
 
 	import onyx.log;
-	import onyx.config.bundle;
+	import onyx.bundle;
 
 	void main()
 	{
 		/* Build ConfBundle from config file */
-		auto bundle = immutable ConfBundle("./test/test.conf");
+		auto bundle = immutable Bundle("./test/test.conf");
 
 		/* Add loggers to "logger pool" */
 		createLoggers(bundle);
