@@ -8,6 +8,7 @@ onyx-log: the simple, fast, multithreading logging library for D.
  - Get logger by his name.
  - Write message to logger.
  - Any work with loggers in multi-threaded environment is safety.
+ - Working together with vibe.d (Add version "vibedlog" to dub.sdl or dub.json)
 
 ## Examples:
 
@@ -15,7 +16,7 @@ Configuration text file ("./test/test.conf"):
 
 	# Logger's name. Any string value
 	[DebugLogger] 				
-	
+
 	# Message level accepted by logger
 	# Values by priority from low to high: debug, info, warning, error, critical, fatal
 	level = debug			
@@ -23,15 +24,15 @@ Configuration text file ("./test/test.conf"):
 	# Appender is logger's message writer
 	# Values: NullAppender, ConsoleAppender, FileAppender
 	appender = FileAppender
-	
+
 	# Rolling type
 	# Values: SizeBasedRollover
 	rolling = SizeBasedRollover
-	
+
 	# Log file max size
 	# Values: number, number with suffix: K, M, G, T, P
 	maxSize = 2K
-	
+
 	# Max number of log files
 	# Values: number
 	maxHistory = 4

@@ -3,14 +3,11 @@
  *
  * Appenders implementation.
  *
- * Copyright: © 2015 onyx-itdevelopment
- *
+ * Copyright: © 2015-2017 Oleg Nykytenko
  * License: MIT license. License terms written in "LICENSE.txt" file
- *
- * Authors: Oleg Nykytenko (onyx), onyx.itdevelopment@gmail.com
+ * Authors: Oleg Nykytenko, oleg.nykytenko@gmail.com
  *
  * Version: 0.xx
- *
  * Date: 13.05.2015
  */
 
@@ -138,7 +135,15 @@ class FileAppender:Appender
     @trusted
     this(immutable Bundle bundle)
     {
-        activity = spawn(&fileAppenderActivityStart, bundle);
+        version (vibedlog)
+        {
+            import vibe.core.core;
+            activity = runTask({fileAppenderActivityStart(bundle);}).tid;
+        }
+        else
+        {
+            activity = spawn(&fileAppenderActivityStart, bundle);
+        }
     }
 
 
@@ -146,7 +151,7 @@ class FileAppender:Appender
      * Append new message and send it to file
      */
     @trusted
-    override void append(immutable string message)
+    override void append(string message)
     {
         activity.send(message);
     }
@@ -253,7 +258,7 @@ class FileAppenderActivity
     private void workCycle()
     {
         receiveTimeout(
-            dur!("msecs")(10),
+            100.msecs,
             (string msg)
             {
                 controller.saveMsg(msg);

@@ -3,14 +3,11 @@
  *
  * User interface to work with logging.
  *
- * Copyright: © 2015 onyx-itdevelopment
- *
+ * Copyright: © 2015-2017 Oleg Nykytenko
  * License: MIT license. License terms written in "LICENSE.txt" file
- *
- * Authors: Oleg Nykytenko (onyx), onyx.itdevelopment@gmail.com
+ * Authors: Oleg Nykytenko, oleg.nykytenko@gmail.com
  *
  * Version: 0.xx
- *
  * Date: 20.03.2015
  */
 module onyx.log;
@@ -102,7 +99,7 @@ interface Log
 	 */
 	immutable (string) level();
 
- 
+
 	/**
 	 * Write message to logger
 	 */
@@ -119,7 +116,7 @@ interface Log
 /**
  * Logger exception
  */
-class LogException:Exception 
+class LogException:Exception
 {
 	@safe pure nothrow this(string exString)
 	{
@@ -135,7 +132,7 @@ class LogCreateException:LogException
 {
 	@safe pure nothrow this(string exString)
 	{
-		super(exString); 
+		super(exString);
 	}
 }
 
@@ -151,7 +148,7 @@ unittest
 //	auto log = getLogger("ErrorLogger");
 //	log.info("info msg");
 //	log.error("error msg");
-	
+
 	version(vTestFile)
 	{
 //		auto log1 = getLogger("MainLogger");

@@ -3,14 +3,11 @@
  *
  * Output Controllers implementation.
  *
- * Copyright: © 2015 onyx-itdevelopment
- *
+ * Copyright: © 2015-2017 Oleg Nykytenko
  * License: MIT license. License terms written in "LICENSE.txt" file
- *
- * Authors: Oleg Nykytenko (onyx), onyx.itdevelopment@gmail.com
+ * Authors: Oleg Nykytenko, oleg.nykytenko@gmail.com
  *
  * Version: 0.xx
- *
  * Date: 13.05.2015
  */
 
@@ -34,20 +31,20 @@ struct Controller
 	 * Currently Logging file
 	 */
 	File activeFile;
-	
-	
+
+
 	/**
 	 * Do file rolling
 	 */
 	Rollover rollover;
-	
-	
+
+
 	/*
  	 * Name
-   	 */ 
+   	 */
 	mixin(addVal!(immutable string, "name", "public"));
-	
-	
+
+
 	/**
 	 * Primary constructor
 	 *
@@ -55,16 +52,16 @@ struct Controller
 	 */
     this(immutable Bundle bundle)
     {
-    	
+
     	rollover = createRollover(bundle);
-    	
+
     	_name = bundle.glKeys[0];
-    	
+
 		createPath(rollover.activeFilePath());
     	activeFile = File(rollover.activeFilePath(), "a");
     }
-    
-    
+
+
     /**
 	 * Extract logger type from bundle
 	 *
@@ -79,14 +76,14 @@ struct Controller
 			{
 				return new Rollover(bundle);
 			}
-			string rollingType = bundle.value(bundle.glKeys[0], "rolling"); 
+			string rollingType = bundle.value(bundle.glKeys[0], "rolling");
 			RolloverFactory f = cast(RolloverFactory)Object.factory("onyx.core.controller." ~ rollingType ~ "Factory");
-			
+
 			if (f is null)
 			{
 				throw new  LogCreateException("Error create log rolling: " ~ rollingType  ~ "  is Illegal rolling type from config bundle.");
 			}
-			
+
 			Rollover r = f.factory(bundle);
 			return r;
 		}
@@ -99,8 +96,8 @@ struct Controller
 			throw new LogCreateException("Error in creating rolling for logger: " ~ name ~ ": " ~ e.msg);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Extract logger type from bundle
 	 *
@@ -119,8 +116,8 @@ struct Controller
 		activeFile.writeln(msg);
 		//flush();
     }
-    
-    
+
+
     /**
 	 * Flush log file
 	 */
@@ -130,7 +127,7 @@ struct Controller
     }
 
 
-		
+
 }
 
 
@@ -143,7 +140,7 @@ void createPath(string fileFullName)
 	import std.path:dirName;
 	import std.file:mkdirRecurse;
 	import std.file:exists;
-	
+
 	string dir = dirName(fileFullName);
 
 	if ((dir.length != 0) && (!exists(dir)))
@@ -162,7 +159,7 @@ void createPath(string fileFullName)
  * Use by Controller for create new Rollover
  *
  * ====================================================================================
- */ 
+ */
 interface RolloverFactory
 {
 	Rollover factory(immutable Bundle bundle);
@@ -177,32 +174,32 @@ class Rollover
 	import std.path;
 	import std.string;
 	import std.typecons;
-	
-	
+
+
 	/**
 	 * Control of size and number of log files
 	 */
 	immutable Bundle bundle;
-	
+
 
 	/**
 	 * Path and file name template
 	 */
 	mixin(addVal!(immutable string, "path", "protected"));
-	
-	
+
+
 	/**
 	 * Work diroctory
 	 */
 	mixin(addVal!(immutable string, "dir", "protected"));
-	
-	
+
+
 	/**
 	 * Log file base name template
 	 */
 	mixin(addVal!(immutable string, "baseName", "protected"));
-	
-	
+
+
 	/**
 	 * Log file extension
 	 */
@@ -213,8 +210,8 @@ class Rollover
 	 * Path to main log file
 	 */
 	mixin(addVar!(string, "activeFilePath", "protected", "protected"));
-	
-	
+
+
 	/**
 	 * Primary constructor
 	 */
@@ -228,7 +225,7 @@ class Rollover
 		_ext = fileInfo[2];
 		init();
 	}
-	
+
 
 	/**
 	 * Rollover start init
@@ -237,27 +234,27 @@ class Rollover
 	{
 		activeFilePath = path;
 	}
-	
-	
+
+
 	/**
 	 * Parse configuration file path and base name and save to members
 	 */
     auto parseConfigFilePath(string configFile)
     {
     	immutable dir = configFile.dirName;
-    	
+
     	string fullBaseName = std.path.baseName(configFile);
-    	
+
     	auto ldotPos = fullBaseName.lastIndexOf(".");
-    	
+
     	immutable ext = (ldotPos > 0)?fullBaseName[ldotPos+1..$]:"log";
-    	
+
     	immutable baseName = (ldotPos > 0)?fullBaseName[0..ldotPos]:fullBaseName;
-    	
+
     	return tuple(dir, baseName, ext);
     }
-	
-	
+
+
 	/**
 	 * Do files rolling by default
 	 */
@@ -293,19 +290,19 @@ class SizeBasedRollover:Rollover
 	import std.algorithm;
 	import std.array;
 
-	
+
 	/**
 	 * Max size of one file
 	 */
 	uint maxSize;
-	
-	
+
+
 	/**
 	 * Max number of working files
 	 */
 	uint maxHistory;
-	
-	
+
+
 	/**
 	 * Primary constructor
 	 */
@@ -315,8 +312,8 @@ class SizeBasedRollover:Rollover
 		maxSize = extractSize(bundle.value(bundle.glKeys[0], "maxSize"));
 		maxHistory = bundle.value!int(bundle.glKeys[0], "maxHistory");
 	}
-	
-	
+
+
 	/**
 	 * Extract number fron configuration data
 	 *
@@ -327,7 +324,7 @@ class SizeBasedRollover:Rollover
 		import std.uni : toLower;
 		import std.uni : toUpper;
 		import std.conv;
-		
+
 		uint nsize = 0;
 		auto n = matchAll(size, regex(`\d*`));
 		if (!n.empty && (n.hit.length != 0))
@@ -349,25 +346,25 @@ class SizeBasedRollover:Rollover
 						break;
 					case "T":
 						nsize *= TB;
-						break; 
+						break;
 					case "P":
 						nsize *= PB;
 						break;
 					default:
-						throw new LogException("In Logger configuration uncorrect number: " ~ size);		 
+						throw new LogException("In Logger configuration uncorrect number: " ~ size);
 				}
-			}	
+			}
 		}
 		return nsize;
 	}
-	
-	
+
+
 	enum KB = 1024;
 	enum MB = KB*1024;
 	enum GB = MB*1024;
 	enum TB = GB*1024;
 	enum PB = TB*1024;
-	
+
 	/**
 	 * Scan work directory
 	 * save needed files to pool
@@ -395,8 +392,8 @@ class SizeBasedRollover:Rollover
     		.sort!("a < b")
     		.array;
     }
-    
-    
+
+
 	/**
 	 * Do files rolling by size
 	 */
@@ -421,15 +418,15 @@ class SizeBasedRollover:Rollover
 		}
 		return false;
 	}
-	
-	
+
+
 	/**
 	 * Rename log files
 	 */
 	void carry(string[] filePool)
 	{
 		import std.conv;
-		
+
 		foreach_reverse(ref file; filePool)
 		{
 			auto newFile = dir ~ "/" ~ baseName ~ to!string(extractNum(file)+1) ~ "." ~ ext;
@@ -438,14 +435,14 @@ class SizeBasedRollover:Rollover
 		}
 	}
 
-	
+
 	/**
 	 * Extract number from file name
 	 */
 	uint extractNum(string file)
 	{
 		import std.conv;
-		
+
 		uint num = 0;
 		try
 		{
@@ -453,18 +450,18 @@ class SizeBasedRollover:Rollover
 			import std.string;
 			auto fch = std.path.baseName(file).chompPrefix(baseName);
 			auto m = matchAll(fch, regex(`\d*`));
-			
+
 			if (!m.empty && m.hit.length > 0)
 			{
 				num = to!uint(m.hit);
 			}
-		}	
+		}
 		catch (Exception e)
 		{
 			throw new Exception("Uncorrect log file name: " ~ file ~ "  -> " ~ e.msg);
 		}
 		return num;
 	}
-	
-	
+
+
 }
