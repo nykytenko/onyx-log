@@ -8,27 +8,35 @@ targetPath "./bin"
 
 
 configuration "library" {
-	targetType "library"
-	sourcePaths "source/"
-	excludedSourceFiles "test"
+    targetType "library"
+    sourcePaths "source/"
+    excludedSourceFiles "test"
 }
 
+configuration "library-vibedlog" {
+    targetType "library"
+    sourcePaths "source/"
+    excludedSourceFiles "test"
+    versions "vibedlog"
+
+    dependency "vibe-d" version="~>0.8.1"
+}
 
 configuration "test" {
-	targetType "executable"
-	sourcePaths "test/" "source/"
-	mainSourceFile "test/onyx/main.d"
-	versions "vTest"
+    targetType "executable"
+    sourcePaths "test/" "source/"
+    mainSourceFile "test/onyx/main.d"
+    versions "vTest"
 }
 
 
 configuration "testFile" {
-	targetType "executable"
-	sourcePaths "test/" "source/"
-	mainSourceFile "test/onyx/main.d"
-	versions "vTest" "vTestFile"
+    targetType "executable"
+    sourcePaths "test/" "source/"
+    mainSourceFile "test/onyx/main.d"
+    versions "vTest" "vTestFile"
 }
 
 
 dependency "onyx-config" version=">=2.0.8"
-dependency "vibe-d" version="~>0.8.1"
+
