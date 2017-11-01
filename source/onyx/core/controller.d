@@ -426,10 +426,11 @@ class SizeBasedRollover:Rollover
 	void carry(string[] filePool)
 	{
 		import std.conv;
+        import std.path;
 
 		foreach_reverse(ref file; filePool)
 		{
-			auto newFile = dir ~ "/" ~ baseName ~ to!string(extractNum(file)+1) ~ "." ~ ext;
+			auto newFile = dir ~ dirSeparator ~ baseName ~ to!string(extractNum(file)+1) ~ "." ~ ext;
 			std.file.rename(file, newFile);
 			file = newFile;
 		}
