@@ -105,8 +105,14 @@ struct Controller
 	 */
 	void saveMsg(string msg)
     {
-    	if ((!activeFile.name.exists) || rollover.roll(msg))
+    	if (!activeFile.name.exists)
     	{
+    		activeFile = File(rollover.activeFilePath(), "w");
+    	}
+    	else if (rollover.roll(msg))
+    	{
+    		activeFile.detach();
+    		rollover.carry();
     		activeFile = File(rollover.activeFilePath(), "w");
     	}
     	else if (!activeFile.isOpen())
@@ -260,6 +266,8 @@ class Rollover
 	{
 		return false;
 	}
+
+	void carry(){}
 }
 
 
@@ -411,7 +419,7 @@ class SizeBasedRollover:Rollover
 				std.file.remove(filePool[$-1]);
 				filePool = filePool[0..$-1];
 			}
-			carry(filePool);
+			//carry(filePool);
 			return true;
 		}
 		return false;
@@ -421,11 +429,13 @@ class SizeBasedRollover:Rollover
 	/**
 	 * Rename log files
 	 */
-	void carry(string[] filePool)
+	override
+	void carry()
 	{
 		import std.conv;
         import std.path;
 
+        auto filePool = scanDir();
 		foreach_reverse(ref file; filePool)
 		{
 			auto newFile = dir ~ dirSeparator ~ baseName ~ to!string(extractNum(file)+1) ~ "." ~ ext;
