@@ -239,19 +239,17 @@ class Rollover
 	/**
 	 * Parse configuration file path and base name and save to members
 	 */
-    auto parseConfigFilePath(string configFile)
+    auto parseConfigFilePath(string rawConfigFile)
     {
-    	immutable dir = configFile.dirName;
+        string configFile = buildNormalizedPath(rawConfigFile);
 
-    	string fullBaseName = std.path.baseName(configFile);
+        immutable dir = configFile.dirName;
+        string fullBaseName = std.path.baseName(configFile);
+        auto ldotPos = fullBaseName.lastIndexOf(".");
+        immutable ext = (ldotPos > 0)?fullBaseName[ldotPos+1..$]:"log";
+        immutable baseName = (ldotPos > 0)?fullBaseName[0..ldotPos]:fullBaseName;
 
-    	auto ldotPos = fullBaseName.lastIndexOf(".");
-
-    	immutable ext = (ldotPos > 0)?fullBaseName[ldotPos+1..$]:"log";
-
-    	immutable baseName = (ldotPos > 0)?fullBaseName[0..ldotPos]:fullBaseName;
-
-    	return tuple(dir, baseName, ext);
+        return tuple(dir, baseName, ext);
     }
 
 
