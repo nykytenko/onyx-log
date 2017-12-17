@@ -306,7 +306,7 @@ class Logger: Log
      * Encode message and put to appender
      */
     @trusted
-    void putMsg(lazy string msg, Level level) nothrow
+    void putMsg(lazy const string msg, Level level) nothrow
     {
         string fmsg;
         if (level >= mlevel)
@@ -380,7 +380,7 @@ class Encoder
      *
      * Throws: Exception
      */
-    immutable (string) encode (immutable string message, immutable Level level)
+    string encode (const string message, immutable Level level)
     {
         import std.string;
         return format("%-27s [%s] %s- %s", Clock.currTime.toISOExtString(), levelToString(level), name, message);

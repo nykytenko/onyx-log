@@ -19,7 +19,7 @@ configuration "library-vibedlog" {
     excludedSourceFiles "test"
     versions "vibedlog"
 
-    dependency "vibe-d" version="~>0.8.1"
+    dependency "vibe-d" version="~>0.8.2"
 }
 
 configuration "test" {

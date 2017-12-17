@@ -42,7 +42,7 @@ abstract class Appender
     /**
      * Append new message
      */
-    void append(immutable string message);
+    void append(string message);
 }
 
 
@@ -67,7 +67,7 @@ class NullAppender:Appender
     /**
      * Append new message and do nothing
      */
-    override void append(immutable string message) nothrow pure {}
+    override void append(string message) nothrow pure {}
 }
 
 
@@ -94,7 +94,7 @@ class ConsoleAppender:Appender
      * Append new message and print it to console
      */
     @trusted /* writefln is system */
-    override void append(immutable string message)
+    override void append(string message)
     {
         import std.stdio;
         writeln(message);
