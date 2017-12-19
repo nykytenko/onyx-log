@@ -4,20 +4,20 @@ onyx-log: the simple, fast, multithreading logging library for D.
 
 
 ## Key features:
- - Create loggers in "logger pool" with configuration data packed to Bundle (onyx-config lib).
+ - Create loggers in "logger pool" from configuration data packed to Bundle (onyx-config lib).
  - Get logger by his name.
  - Write message to logger.
  - Any work with loggers in multi-threaded environment is safety.
- - Working together with vibe.d (Add version "vibedlog" to dub.sdl or dub.json)
+ - Working together with vibe.d
 
  
  
 ### For use logger with vibe.d, add to your project:
- dub.sdl
+in dub.sdl
 ```
 subConfiguration "onyx-log" "library-vibedlog"
 ```
- or dub.json
+ or in dub.json
 ```
 "subConfigurations": {
         "onyx-log": "library-vibedlog"
