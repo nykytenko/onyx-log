@@ -331,7 +331,8 @@ class Encoder
     string encode (const string message, immutable Level level)
     {
         import std.string;
-        return format("%-27s [%s] %s- %s", Clock.currTime.toISOExtString(), levelToString(level), name, message);
+        string strLevel = "[" ~ levelToString(level) ~ "]";
+        return format("%-27s %-10s %-s- %s", Clock.currTime.toISOExtString(), strLevel, name, message);
     }
 }
 
