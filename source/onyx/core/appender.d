@@ -3,12 +3,9 @@
  *
  * Appenders implementation.
  *
- * Copyright: © 2015-2017 Oleg Nykytenko
+ * Copyright: © 2015- Oleg Nykytenko
  * License: MIT license. License terms written in "LICENSE.txt" file
  * Authors: Oleg Nykytenko, oleg.nykytenko@gmail.com
- *
- * Version: 0.xx
- * Date: 13.05.2015
  */
 
 module onyx.core.appender;
@@ -20,8 +17,8 @@ package:
 
 import onyx.bundle;
 
-/*
- * Appender Create interface
+/**
+ * Appender Creating interface
  *
  * Use by Logger for create new Appender
  *
@@ -31,7 +28,6 @@ interface AppenderFactory
 {
     Appender factory(immutable Bundle bundle);
 }
-
 
 
 /**
@@ -58,6 +54,7 @@ class NullAppenderFactory:AppenderFactory
         return new NullAppender();
     }
 }
+
 
 /**
  * Only Accept messages
@@ -123,11 +120,8 @@ class FileAppender:Appender
 {
     import std.concurrency;
 
-    /**
-     * Tid for appender activity
-     */
+    /* Tid for appender activity */
     Tid activity;
-
 
     /**
      * Create Appender
@@ -145,7 +139,6 @@ class FileAppender:Appender
             activity = spawn(&fileAppenderActivityStart, bundle);
         }
     }
-
 
     /**
      * Append new message and send it to file
@@ -180,7 +173,6 @@ void fileAppenderActivityStart(immutable Bundle bundle) nothrow
 }
 
 
-
 /**
  * Logger FileAppender activity
  *
@@ -188,32 +180,22 @@ void fileAppenderActivityStart(immutable Bundle bundle) nothrow
  */
 class FileAppenderActivity
 {
-    import  onyx.core.controller;
+    import onyx.core.controller;
     import std.concurrency;
     import std.datetime;
 
 
-    /**
-     * Max flush period to write to file
-     */
+    /* Max flush period to write to file */
     enum logFileWriteFlushPeriod = 100; // ms
 
-
-    /**
-     * Activity working status
-     */
+    /* Activity working status */
     enum AppenderWorkStatus {WORKING, STOPPING}
     private auto workStatus = AppenderWorkStatus.WORKING;
 
-
     long startFlushTime;
 
-
-    /**
-     * Max flush period to write to file
-     */
+    /* Max flush period to write to file */
     Controller controller;
-
 
     /**
      * Primary constructor
@@ -225,7 +207,6 @@ class FileAppenderActivity
         controller = Controller(bundle);
         startFlushTime = Clock.currStdTime();
     }
-
 
     /**
      * Entry point for start module work
@@ -250,7 +231,6 @@ class FileAppenderActivity
         }
     }
 
-
     /**
      * Activity main cycle
      */
@@ -273,5 +253,4 @@ class FileAppenderActivity
             startFlushTime = Clock.currStdTime();
         }
     }
-
 }

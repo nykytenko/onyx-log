@@ -3,13 +3,11 @@
  *
  * Logger core implementation.
  *
- * Copyright: © 2015-2017 Oleg Nykytenko
+ * Copyright: © 2015- Oleg Nykytenko
  * License: MIT license. License terms written in "LICENSE.txt" file
  * Authors: Oleg Nykytenko, oleg.nykytenko@gmail.com
- *
- * Version: 0.xx
- * Date: 20.03.2015
  */
+
 module onyx.core.logger;
 
 
@@ -42,7 +40,6 @@ void create(immutable Bundle bundle)
     }
 }
 
-
 /**
  * Delete loggers
  *
@@ -63,7 +60,6 @@ void delete_(immutable GlKey[] loggerNames)
     }
 }
 
-
 /**
  * Get created logger
  *
@@ -82,7 +78,6 @@ Log get(immutable string loggerName)
     }
 }
 
-
 /**
  * Set file for save loggers exception information
  *
@@ -98,7 +93,6 @@ void setErrorFile(immutable string file)
         errorFile = File(file, "a");
     }
 }
-
 
 /*
  * Make class member with getter
@@ -127,27 +121,15 @@ template addVar(T, string name, string getterSpecificator, string setterSpecific
 private:
 
 import core.sync.mutex;
-
 import std.stdio;
-
 import onyx.core.appender;
-/*
- * Mutex use for block work with loggers pool
- */
+
+/* Mutex use for block work with loggers pool */
 __gshared Mutex lock;
-
-
-/*
- * Save loggers by names in pool
- */
+/* Save loggers by names in pool */
 __gshared Logger[immutable string] ids;
-
-
-/*
- * Save loggers errors in file
- */
+/* Save loggers errors in file */
 __gshared File errorFile;
-
 
 
 shared static this()
@@ -161,17 +143,10 @@ shared static this()
  */
 class Logger: Log
 {
-    /*
-     * Configuration data
-     */
+    /* Configuration data */
     mixin(addVal!(immutable Bundle, "config", "public"));
-
-
-    /*
-     * Name
-     */
+    /* Name */
     mixin(addVal!(immutable string, "name", "public"));
-
 
     /*
      * Level getter in string type
@@ -181,24 +156,12 @@ class Logger: Log
         return mlevel.levelToString();
     }
 
-
-    /*
-     * Level
-     */
+    /* Level */
     Level mlevel;
-
-
-    /*
-     * Appender
-     */
+    /* Appender */
     Appender appender;
-
-
-    /*
-     * Encoder
-     */
-     Encoder encoder;
-
+    /* Encoder */
+    Encoder encoder;
 
     /*
      * Create logger impl
@@ -214,7 +177,6 @@ class Logger: Log
         appender = createAppender(bundle);
         encoder = new Encoder(bundle);
     }
-
 
     /*
      * Extract logger type from bundle
@@ -233,7 +195,6 @@ class Logger: Log
             {
                 throw new  LogCreateException("Error create log appender: " ~ appenderType  ~ "  is Illegal appender type from config bundle.");
             }
-
             Appender a = f.factory(bundle);
             return a;
         }
@@ -247,7 +208,6 @@ class Logger: Log
         }
     }
 
-
     /*
      * Write message with level "debug" to logger
      */
@@ -255,7 +215,6 @@ class Logger: Log
     {
         putMsg(msg, Level.debug_);
     }
-
 
     /*
      * Write message with level "info" to logger
@@ -265,7 +224,6 @@ class Logger: Log
         putMsg(msg, Level.info);
     }
 
-
     /*
      * Write message with level "warning" to logger
      */
@@ -273,7 +231,6 @@ class Logger: Log
     {
         putMsg(msg, Level.warning);
     }
-
 
     /*
      * Write message with level "error" to logger
@@ -283,7 +240,6 @@ class Logger: Log
         putMsg(msg, Level.error);
     }
 
-
     /*
      * Write message with level "critical" to logger
      */
@@ -292,7 +248,6 @@ class Logger: Log
         putMsg(msg, Level.critical);
     }
 
-
     /*
      * Write message with level "fatal" to logger
      */
@@ -300,7 +255,6 @@ class Logger: Log
     {
         putMsg(msg, Level.fatal);
     }
-
 
     /*
      * Encode message and put to appender
@@ -337,7 +291,6 @@ class Logger: Log
         }
     }
 
-
     /**
      * Logger exeption handler
      */
@@ -355,16 +308,12 @@ class Logger: Log
     }
 }
 
-
 class Encoder
 {
     import std.datetime;
 
-    /*
-     * Name
-     */
+    /* Name */
      mixin(addVal!(immutable string, "name", "private"));
-
 
     /*
      * Build encoder
@@ -373,7 +322,6 @@ class Encoder
     {
         _name = bundle.glKeys[0];
     }
-
 
     /**
      * Do make message finish string
@@ -386,7 +334,6 @@ class Encoder
         return format("%-27s [%s] %s- %s", Clock.currTime.toISOExtString(), levelToString(level), name, message);
     }
 }
-
 
 
 /*
@@ -434,7 +381,6 @@ Level toLevel(string str)
     }
     return l;
 }
-
 
 /*
  * Convert level from Level type to string
