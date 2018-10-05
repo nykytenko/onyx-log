@@ -132,20 +132,17 @@ unittest
     createLoggers(bundle);
     setErrorFile("./log/error.log");
 
-//	auto log = getLogger("ErrorLogger");
-//	log.info("info msg");
-//	log.error("error msg");
-
     version(vTestFile)
     {
-//		auto log1 = getLogger("MainLogger");
-//		log1.debug_("debug msg");
-//		log1.info("info msg");
-//		log1.error("error msg");
-
         auto log2 = getLogger("DebugLogger");
         log2.debug_("debug msg");
         log2.info("info msg");
         log2.error("error!!!!!! msg");
 	}
+    else
+    {
+        auto log = getLogger("ErrorLogger");
+    	log.info("info test msg");
+    	log.error("error test msg");
+    }
 }
