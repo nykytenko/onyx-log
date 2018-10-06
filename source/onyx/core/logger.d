@@ -79,6 +79,15 @@ Log get(immutable string loggerName)
 }
 
 /**
+ * Check Logger
+ */
+@trusted
+bool isCreated(immutable string loggerName) nothrow
+{
+    return (loggerName in ids) ? true : false;
+}
+
+/**
  * Set file for save loggers exception information
  *
  * Throws: Exception

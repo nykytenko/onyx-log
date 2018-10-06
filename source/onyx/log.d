@@ -59,6 +59,14 @@ void deleteLoggers(immutable string[] loggerNames)
 }
 
 /**
+ * Check is Logger present
+ */
+bool isLogger(immutable string loggerName) nothrow
+{
+    return isCreated(loggerName);
+}
+
+/**
  * Set path to file for save loggers exception information
  *
  * Throws: Exception
