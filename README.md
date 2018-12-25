@@ -10,8 +10,8 @@ onyx-log: the simple, fast, multithreading logging library for D.
  - Any work with loggers in multi-threaded environment is safety.
  - Working together with vibe.d
 
- 
- 
+
+
 ### For use logger with vibe.d, add to your project:
 in dub.sdl
 ```
@@ -84,7 +84,8 @@ Source code example:
 
         auto logDebug = getLogger("DebugLogger");
         logDebug.debug_("debug msg");
-        logDebug.info("info msg");
-        logDebug.error("error!!!!!! msg");
+        logDebug.info("info test msg %d", 2);
+    	logDebug.error("error test %s", "msg");
+        logDebug.critical("critical test msg %#x", 125);
     }
 ```

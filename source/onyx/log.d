@@ -122,7 +122,7 @@ unittest
     {
         Logger log = getLogger("ErrorLogger");
     	log.info("info test msg %d", 2);
-    	log.error!string("error test msg");
-        log.critical("critical test msg %d", 5);
+    	log.error("error test %s", "msg");
+        log.critical("critical test msg %#x", 125);
     }
 }
