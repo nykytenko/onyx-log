@@ -66,7 +66,7 @@ void delete_(immutable GlKey[] loggerNames)
  * Throws: LogException
  */
 @trusted
-Log get(immutable string loggerName)
+Logger get(immutable string loggerName)
 {
     if (loggerName in ids)
     {
@@ -127,31 +127,65 @@ template addVar(T, string name, string getterSpecificator, string setterSpecific
  **************************************************************************************
  */
 @system:
-private:
-
-import core.sync.mutex;
-import std.stdio;
-import onyx.core.appender;
-
-/* Mutex use for block work with loggers pool */
-__gshared Mutex lock;
-/* Save loggers by names in pool */
-__gshared Logger[immutable string] ids;
-/* Save loggers errors in file */
-__gshared File errorFile;
-
-
-shared static this()
-{
-    lock = new Mutex();
-}
 
 
 /*
  * Logger implementation
  */
-class Logger: Log
+class Logger
 {
+
+public:
+    /*
+     * Write message with level "debug" to logger
+     */
+    void debug_(M...)(lazy const M msg) nothrow
+    {
+        putMsg(Level.debug_, msg);
+    }
+
+    /*
+     * Write message with level "info" to logger
+     */
+    void info(M...)(lazy const M msg) nothrow
+    {
+        putMsg(Level.info, msg);
+    }
+
+    /*
+     * Write message with level "warning" to logger
+     */
+    void warning(M...)(lazy const M msg) nothrow
+    {
+        putMsg(Level.warning, msg);
+    }
+
+    /*
+     * Write message with level "error" to logger
+     */
+    void error(M...)(lazy const M msg) nothrow
+    {
+        putMsg(Level.error, msg);
+    }
+
+    /*
+     * Write message with level "critical" to logger
+     */
+    void critical(M...)(lazy const M msg) nothrow
+    {
+        putMsg(Level.critical, msg);
+    }
+
+    /*
+     * Write message with level "fatal" to logger
+     */
+    void fatal(M...)(lazy const M msg) nothrow
+    {
+        putMsg(Level.fatal, msg);
+    }
+
+
+private:
     /* Configuration data */
     mixin(addVal!(immutable Bundle, "config", "public"));
     /* Name */
@@ -218,80 +252,35 @@ class Logger: Log
     }
 
     /*
-     * Write message with level "debug" to logger
-     */
-    void debug_(lazy const string msg) nothrow
-    {
-        putMsg(msg, Level.debug_);
-    }
-
-    /*
-     * Write message with level "info" to logger
-     */
-    void info(lazy const string msg) nothrow
-    {
-        putMsg(msg, Level.info);
-    }
-
-    /*
-     * Write message with level "warning" to logger
-     */
-    void warning(lazy const string msg) nothrow
-    {
-        putMsg(msg, Level.warning);
-    }
-
-    /*
-     * Write message with level "error" to logger
-     */
-    void error(lazy const string msg) nothrow
-    {
-        putMsg(msg, Level.error);
-    }
-
-    /*
-     * Write message with level "critical" to logger
-     */
-    void critical(lazy const string msg) nothrow
-    {
-        putMsg(msg, Level.critical);
-    }
-
-    /*
-     * Write message with level "fatal" to logger
-     */
-    void fatal(lazy const string msg) nothrow
-    {
-        putMsg(msg, Level.fatal);
-    }
-
-    /*
      * Encode message and put to appender
      */
     @trusted
-    void putMsg(lazy const string msg, Level level) nothrow
+    void putMsg(M...)(Level level, lazy M msg) nothrow
     {
-        string fmsg;
         if (level >= mlevel)
         {
+            string emsg;
             try
             {
-                fmsg = encoder.encode(msg, level);
+                import std.format;
+                auto fmsg = format(msg);
+                emsg = encoder.encode(level, fmsg);
             }
             catch (Exception e)
             {
                 try
                 {
-                    fmsg = encoder.encode("Error in encode log message: " ~ e.msg, Level.error);
+                    emsg = encoder.encode(Level.error, "Error in encoding log message: " ~ e.msg);
                 }
                 catch (Exception ee)
                 {
                     fixException(ee);
+                    return;
                 }
             }
             try
             {
-                appender.append(fmsg);
+                appender.append(emsg);
             }
             catch (Exception e)
             {
@@ -317,6 +306,27 @@ class Logger: Log
     }
 }
 
+private:
+
+
+import core.sync.mutex;
+import std.stdio;
+import onyx.core.appender;
+
+/* Mutex use for block work with loggers pool */
+__gshared Mutex lock;
+/* Save loggers by names in pool */
+__gshared Logger[immutable string] ids;
+/* Save loggers errors in file */
+__gshared File errorFile;
+
+
+shared static this()
+{
+    lock = new Mutex();
+}
+
+
 class Encoder
 {
     import std.datetime;
@@ -337,7 +347,7 @@ class Encoder
      *
      * Throws: Exception
      */
-    string encode (const string message, immutable Level level)
+    string encode (immutable Level level, const string message)
     {
         import std.string;
         string strLevel = "[" ~ levelToString(level) ~ "]";

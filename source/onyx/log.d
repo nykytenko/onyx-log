@@ -12,11 +12,13 @@ module onyx.log;
 
 
 import onyx.bundle;
-import onyx.core.logger;
+public import onyx.core.logger;
 
+
+deprecated("Use onyx.log.Logger")
+alias Log = Logger;
 
 @safe:
-
 
 /**
  * Create loggers from config bundle
@@ -33,7 +35,7 @@ void createLoggers(immutable Bundle bundle)
  *
  * Throws: LogException
  */
-Log getLogger(immutable string loggerName)
+Logger getLogger(immutable string loggerName)
 {
     return get(loggerName);
 }
@@ -77,37 +79,6 @@ void setErrFile(immutable string file)
 }
 
 
-/**
- * User interface for work with logger.
- */
-interface Log
-{
-    /**
-     * Logger's name
-     */
-    immutable (string) name();
-
-    /**
-     * Configurations data
-     */
-    immutable (Bundle) config();
-
-    /**
-     * Logger's level
-     */
-    immutable (string) level();
-
-    /**
-     * Write message to logger
-     */
-    void debug_(lazy const string msg) nothrow;
-    void info(lazy const string msg) nothrow;
-    void warning(lazy const string msg) nothrow;
-    void error(lazy const string msg) nothrow;
-    void critical(lazy const string msg) nothrow;
-    void fatal(lazy const string msg) nothrow;
-}
-
 
 /**
  * Logger exception
@@ -144,13 +115,14 @@ unittest
     {
         auto log2 = getLogger("DebugLogger");
         log2.debug_("debug msg");
-        log2.info("info msg");
-        log2.error("error!!!!!! msg");
+        log2.info("info msg %d", 2);
+        log2.error("error test %d %s", 3, "msg");
 	}
     else
     {
-        auto log = getLogger("ErrorLogger");
-    	log.info("info test msg");
-    	log.error("error test msg");
+        Logger log = getLogger("ErrorLogger");
+    	log.info("info test msg %d", 2);
+    	log.error!string("error test msg");
+        log.critical("critical test msg %d", 5);
     }
 }
