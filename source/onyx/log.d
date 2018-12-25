@@ -104,7 +104,6 @@ class LogCreateException:LogException
 
 
 
-@trusted:
 unittest
 {
     auto bundle = new immutable Bundle("./test/test.conf");

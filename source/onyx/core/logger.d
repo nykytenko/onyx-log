@@ -126,8 +126,6 @@ template addVar(T, string name, string getterSpecificator, string setterSpecific
 /*
  **************************************************************************************
  */
-@system:
-
 
 /*
  * Logger implementation
@@ -184,7 +182,7 @@ public:
         putMsg(Level.fatal, msg);
     }
 
-
+@system:
 private:
     /* Configuration data */
     mixin(addVal!(immutable Bundle, "config", "public"));
@@ -306,6 +304,7 @@ private:
     }
 }
 
+@system:
 private:
 
 
