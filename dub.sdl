@@ -1,7 +1,7 @@
 name "onyx-log"
 description "logging library for D."
 license "MIT"
-copyright "Copyright © 2014-2018"
+copyright "Copyright © 2014-2021"
 authors "Oleg Nykytenko"
 
 targetPath "./bin"
@@ -19,7 +19,7 @@ configuration "library-vibedlog" {
     excludedSourceFiles "test"
     versions "vibedlog"
 
-    dependency "vibe-d" version="~>0.8.4"
+    dependency "vibe-d" version="~>0.9.3"
 }
 
 configuration "test" {
@@ -37,4 +37,4 @@ configuration "testFile" {
 }
 
 
-dependency "onyx-config" version="~>2.0.11"
+dependency "onyx-config" version="~>2.0.13"
