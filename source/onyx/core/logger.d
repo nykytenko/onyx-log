@@ -43,6 +43,8 @@ void create(immutable Bundle bundle)
 /**
  * Delete loggers
  *
+ * Logger appender is stopped: messages, put to deleted logger later, are lost
+ *
  * Throws: Exception
  */
 @trusted
@@ -52,9 +54,10 @@ void delete_(immutable GlKey[] loggerNames)
     {
         foreach(loggerName; loggerNames)
         {
-            if (loggerName in ids)
+            if (auto log = loggerName in ids)
             {
-            	ids.remove(loggerName);
+                (*log).appender.stop();
+                ids.remove(loggerName);
             }
         }
     }
@@ -68,14 +71,14 @@ void delete_(immutable GlKey[] loggerNames)
 @trusted
 Logger get(immutable string loggerName)
 {
-    if (loggerName in ids)
+    synchronized (lock)
     {
-        return ids[loggerName];
+        if (auto log = loggerName in ids)
+        {
+            return *log;
+        }
     }
-    else
-    {
-        throw new LogException("Getting logger error. Logger with name: " ~ loggerName ~ " not created");
-    }
+    throw new LogException("Getting logger error. Logger with name: " ~ loggerName ~ " not created");
 }
 
 /**
@@ -84,6 +87,9 @@ Logger get(immutable string loggerName)
 @trusted
 bool isCreated(immutable string loggerName) nothrow
 {
+    /* synchronized statement is not nothrow */
+    lock.lock_nothrow();
+    scope(exit) lock.unlock_nothrow();
     return (loggerName in ids) ? true : false;
 }
 
@@ -430,4 +436,61 @@ string levelToString(Level level)
             break;
     }
     return l;
+}
+
+
+/*
+ * Deleted logger closes its file
+ *
+ * Appender activity is a thread here, in vibedlog version it is a vibe.d task,
+ * which needs running event loop
+ */
+version (vibedlog) {} else version (linux)
+unittest
+{
+    import core.thread : Thread;
+    import core.time : msecs;
+    import std.file : dirEntries, SpanMode, readLink, tempDir, exists, remove;
+    import std.path : buildPath;
+
+    immutable fileName = buildPath(tempDir, "onyx-log-delete-test.log");
+    immutable loggerName = "DeleteTestLogger";
+
+    bool isFileOpen()
+    {
+        foreach (e; dirEntries("/proc/self/fd", SpanMode.shallow))
+        {
+            try
+            {
+                if (readLink(e.name) == fileName) return true;
+            }
+            catch (Exception) {}
+        }
+        return false;
+    }
+
+    /* wait for appender activity, it works in other thread */
+    bool waitFileOpen(bool open)
+    {
+        foreach (i; 0 .. 100)
+        {
+            if (isFileOpen() == open) return true;
+            Thread.sleep(10.msecs);
+        }
+        return false;
+    }
+
+    create(new immutable Bundle([
+        "[" ~ loggerName ~ "]",
+        "level = debug",
+        "appender = FileAppender",
+        "fileName = " ~ fileName]));
+    scope(exit) if (fileName.exists) fileName.remove;
+
+    get(loggerName).info("test message");
+    assert(waitFileOpen(true));
+
+    delete_([loggerName]);
+    assert(!isCreated(loggerName));
+    assert(waitFileOpen(false));
 }
