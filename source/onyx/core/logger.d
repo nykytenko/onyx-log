@@ -266,8 +266,20 @@ private:
             string emsg;
             try
             {
-                import std.format;
-                auto fmsg = format(msg);
+                static if (M.length == 1)
+                {
+                    /*
+                     * Single argument is the message, not format string: it may
+                     * contain '%' (exception message, received data etc.)
+                     */
+                    import std.conv : to;
+                    auto fmsg = to!string(msg[0]);
+                }
+                else
+                {
+                    import std.format;
+                    auto fmsg = format(msg);
+                }
                 emsg = encoder.encode(level, fmsg);
             }
             catch (Exception e)
@@ -493,4 +505,46 @@ unittest
     delete_([loggerName]);
     assert(!isCreated(loggerName));
     assert(waitFileOpen(false));
+}
+
+
+/*
+ * Single argument message is written as is, '%' in it is not format specifier
+ */
+version (vibedlog) {} else version (linux)
+unittest
+{
+    import core.thread : Thread;
+    import core.time : msecs;
+    import std.algorithm : canFind;
+    import std.file : tempDir, exists, readText, remove;
+    import std.path : buildPath;
+
+    immutable fileName = buildPath(tempDir, "onyx-log-format-test.log");
+    immutable loggerName = "FormatTestLogger";
+    if (fileName.exists) fileName.remove;
+
+    create(new immutable Bundle([
+        "[" ~ loggerName ~ "]",
+        "level = debug",
+        "appender = FileAppender",
+        "fileName = " ~ fileName]));
+    scope(exit) if (fileName.exists) fileName.remove;
+
+    auto log = get(loggerName);
+    log.info("progress 50% done, %s is not a specifier");
+    log.info("formatted %d%%", 42);
+    delete_([loggerName]);
+
+    /* appender writes file in other thread and closes it on delete */
+    string text;
+    foreach (i; 0 .. 100)
+    {
+        text = fileName.exists ? readText(fileName) : "";
+        if (text.canFind("formatted")) break;
+        Thread.sleep(10.msecs);
+    }
+    assert(text.canFind("progress 50% done, %s is not a specifier"));
+    assert(text.canFind("formatted 42%"));
+    assert(!text.canFind("Error in encoding log message"));
 }
