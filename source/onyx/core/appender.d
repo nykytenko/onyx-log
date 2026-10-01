@@ -39,6 +39,13 @@ abstract class Appender
      * Append new message
      */
     void append(string message);
+
+    /**
+     * Stop appender and release its resources
+     *
+     * Messages appended after stop are lost
+     */
+    void stop() nothrow {}
 }
 
 
@@ -148,7 +155,29 @@ class FileAppender:Appender
     {
         activity.send(message);
     }
+
+    /**
+     * Stop appender activity: it writes received messages, closes file and exits
+     *
+     * Activity has no owner in vibedlog version (runTask), so without stop
+     * it works and keeps file opened forever
+     */
+    @trusted
+    override void stop() nothrow
+    {
+        try
+        {
+            activity.send(AppenderStopMsg());
+        }
+        catch (Exception e) {}
+    }
 }
+
+
+/**
+ * Command for appender activity to stop
+ */
+struct AppenderStopMsg {}
 
 
 /**
@@ -229,6 +258,15 @@ class FileAppenderActivity
                 writeln("FileAppenderActivity workcycle exception: " ~ e.msg);
             }
         }
+        try
+        {
+            controller.close();
+        }
+        catch (Exception e)
+        {
+            import std.stdio;
+            writeln("FileAppenderActivity close exception: " ~ e.msg);
+        }
     }
 
     /**
@@ -243,6 +281,7 @@ class FileAppenderActivity
             {
                 controller.saveMsg(msg);
             },
+            (AppenderStopMsg m){workStatus = AppenderWorkStatus.STOPPING;},
             (OwnerTerminated e){workStatus = AppenderWorkStatus.STOPPING;},
             (Variant any){}
         );

@@ -110,6 +110,16 @@ struct Controller
     {
         activeFile.flush;
     }
+
+    /**
+     * Close log file
+     *
+     * Throws: $(D ErrnoException)
+     */
+    void close()
+    {
+        activeFile.close();
+    }
 }
 
 
