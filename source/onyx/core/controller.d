@@ -88,6 +88,8 @@ struct Controller
     {
         if (!activeFile.name.exists)
         {
+            /* file or its directory is deleted while logger works */
+            createPath(rollover.activeFilePath());
             activeFile = File(rollover.activeFilePath(), "w");
         }
         else if (rollover.roll(msg))

@@ -548,3 +548,51 @@ unittest
     assert(text.canFind("formatted 42%"));
     assert(!text.canFind("Error in encoding log message"));
 }
+
+
+/*
+ * Log file and its directory are created again, if they are deleted while logger works
+ */
+version (vibedlog) {} else version (linux)
+unittest
+{
+    import core.thread : Thread;
+    import core.time : msecs;
+    import std.file : tempDir, exists, rmdirRecurse;
+    import std.path : buildPath;
+
+    immutable dir = buildPath(tempDir, "onyx-log-dir-test");
+    immutable fileName = buildPath(dir, "sub", "dir-test.log");
+    immutable loggerName = "DirTestLogger";
+    if (dir.exists) dir.rmdirRecurse;
+
+    /* appender writes file in other thread */
+    bool waitFile()
+    {
+        foreach (i; 0 .. 100)
+        {
+            if (fileName.exists) return true;
+            Thread.sleep(10.msecs);
+        }
+        return false;
+    }
+
+    create(new immutable Bundle([
+        "[" ~ loggerName ~ "]",
+        "level = debug",
+        "appender = FileAppender",
+        "fileName = " ~ fileName]));
+    scope(exit)
+    {
+        delete_([loggerName]);
+        if (dir.exists) dir.rmdirRecurse;
+    }
+
+    auto log = get(loggerName);
+    log.info("before deleting");
+    assert(waitFile());
+
+    dir.rmdirRecurse;
+    log.info("after deleting");
+    assert(waitFile());
+}
