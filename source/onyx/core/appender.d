@@ -226,6 +226,22 @@ class FileAppenderActivity
     /* Max flush period to write to file */
     Controller controller;
 
+    /*
+     * Write errors are reported to stdout: the first one at once, next ones by
+     * count at most once in errorReportPeriod. With full disk each message fails,
+     * and reporting each of them floods stdout (journal).
+     */
+    enum errorReportPeriod = 10; // s
+
+    /* Errors not reported yet */
+    private ulong unreportedErrors;
+
+    /* Last not reported error */
+    private string lastError;
+
+    /* Time of last report */
+    private long lastErrorReportTime;
+
     /**
      * Primary constructor
      *
@@ -254,9 +270,15 @@ class FileAppenderActivity
             }
             catch (Exception e)
             {
-                import std.stdio;
-                writeln("FileAppenderActivity workcycle exception: " ~ e.msg);
+                countError(e.msg);
             }
+            reportErrors();
+        }
+        /* report the rest of errors before exit */
+        if (unreportedErrors > 0)
+        {
+            lastErrorReportTime = 0;
+            reportErrors();
         }
         try
         {
@@ -267,6 +289,58 @@ class FileAppenderActivity
             import std.stdio;
             writeln("FileAppenderActivity close exception: " ~ e.msg);
         }
+    }
+
+    /**
+     * Count write error: the first one is reported at once
+     */
+    private void countError(string msg)
+    {
+        unreportedErrors++;
+        lastError = msg;
+        if (lastErrorReportTime == 0)
+        {
+            reportErrors();
+        }
+    }
+
+    /**
+     * Report counted errors, if report period is over
+     */
+    private void reportErrors()
+    {
+        immutable now = Clock.currStdTime();
+        if (unreportedErrors == 0)
+        {
+            /* no errors during the period: the next one is reported at once */
+            if ((now - lastErrorReportTime)/(1000*10*1000) >= errorReportPeriod)
+            {
+                lastErrorReportTime = 0;
+            }
+            return;
+        }
+        if (lastErrorReportTime != 0 && (now - lastErrorReportTime)/(1000*10*1000) < errorReportPeriod)
+        {
+            return;
+        }
+        try
+        {
+            import std.stdio;
+            import std.conv : to;
+            if (unreportedErrors == 1)
+            {
+                writeln("FileAppenderActivity " ~ controller.name ~ " workcycle exception: " ~ lastError);
+            }
+            else
+            {
+                writeln("FileAppenderActivity " ~ controller.name ~ ": " ~ to!string(unreportedErrors)
+                    ~ " workcycle exceptions, messages are lost, last one: " ~ lastError);
+            }
+            stdout.flush();
+        }
+        catch (Exception e) {}
+        unreportedErrors = 0;
+        lastErrorReportTime = now;
     }
 
     /**
